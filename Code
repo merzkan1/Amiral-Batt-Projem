@@ -1,0 +1,1300 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+#define TIME 1
+int control=0;
+int player1Ashipdone=0,player2Ashipdone=0;
+int player1Bshipdone=0,player2Bshipdone=0;
+int player1Cshipdone=0,player2Cshipdone=0;
+int player1Dshipdone=0,player2Dshipdone=0;
+int player1Sshipdone=0,player2Sshipdone=0;
+
+void emptyBoard(int row, int column, char board[row][column]) {
+    int i, j;
+    for (i = 0; i < row; i++)
+    {
+        for (j = 0; j < column; j++)
+        {
+            board[i][j] = 'X';
+        }
+    }
+}
+
+void printBoard(int row, int column, char board[row][column]) {
+    int i, j;
+    printf("\n   ");
+    int c;
+    for (c = 'A'; c < 'A' + column; c++)
+    {
+        printf(" %c ", c);
+    }
+    printf("\n");
+    for (i = 0; i < row; i++)
+    {
+        printf("%d| ", i + 1);
+        for (j = 0; j < column; j++)
+        {
+            printf(" %c ", board[i][j]);
+        }
+        printf("|\n");
+    }
+}
+
+void welcome_rules_interface()
+{
+    printf("WELCOME TO THE\n\n\n");
+    printf("                              XXXXXX    XXXX  XXXXXX XXXXXX XX    XXXXXX XXXXXX XX   XX  XX XXXXXX  \n");
+    printf("                              XX  XX   XX  XX   XX     XX   XX    XX     XX     XX   XX  XX XX  XX  \n");
+    printf("                              XXXXXX   XX  XX   XX     XX   XX    XXXX   XXXXXX XXXXXXX  XX XXXXXX  \n");
+    printf("                              XX  XX   XXXXXX   XX     XX   XX    XX         XX XX   XX  XX XX      \n");
+    printf("                              XXXXXX   XX  XX   XX     XX   XXXXX XXXXXX XXXXXX XX   XX  XX XX      \n");
+    printf("\n");
+    printf("                                     XXXXX  XX   XX \tXXXXXXXX XXXXXX XXXXXX   XXXXXX XX  XX  XXXX  XXXX   XX  \n");
+    printf("                                     XX  XX  XX XX  \tXX XX XX XX     XX   XX     XX  XX XX  XX  XX XX XX  XX  \n");
+    printf("                                     XXXXX    XX    \tXX XX XX XXXX   XXXXXX     XX   XXX    XX  XX XX XX  XX  \n");
+    printf("                                     XX  XX   XX  XX\tXX XX XX XX     XX  XX    XX    XX XX  XXXXXX XX  XX XX  \n");
+    printf("                                     XXXXX    XX  XX\tXX XX XX XXXXXX XX   XX  XXXXXX XX  XX XX  XX XX    XXX  \n");
+    printf("\n\n");
+    printf("Press \"Enter\" to read the rules.");
+    getchar();
+    sleep(TIME);
+    system("cls");
+    printf("RULES OF THE GAME: \n\n");
+    printf("1- This game is designed for 2 player.\n\n");
+    printf("2- Both player need to placed their ships manually.\n");
+    printf("or prefer to place his/her ships.\n\n");
+    printf("3- There are five types of ships:\n");
+    printf("       Aircraft carrier. 5 squares.\n		Battleship. 4 squares.\n		Destroyer. 3 squares.\n		Submarine. 3 squares.\n		Cruiser. 2 squares.\n");
+    printf("4. The game begins as each player placed their ships and then \n each player tries to guess the location of the ships\n");
+    printf("   of the opposing player's game board; [*] hit and [0] miss.\n\n");
+    printf("5. who found all ships location first this player wins the game.\n\n");
+    printf("HAVE FUN!!\n\n");
+    printf("Press \"Enter\" to start to the game!\n");
+    getchar();
+    sleep(TIME);
+    system("cls");
+}
+
+bool isPlaceOkay(int row, int column, char board[row][column], int rShip, int cShip) {
+    return (rShip >= 0 && rShip < row && cShip >= 0 && cShip < column && board[rShip][cShip] == 'X');
+}
+
+bool isAttackOkay(int row, int column, char board[row][column], int rShip, int cShip) {
+    return (rShip >= 0 && rShip < row && cShip >= 0 && cShip < column && board[rShip][cShip] != 'X' && board[rShip][cShip] != '*' && board[rShip][cShip] != '0');
+}
+
+void placeShip(int row, int column, char player, int *playerShips1, int *playerShips2,char player1Board[row][column], char player2Board[row][column],char player1BoardDisplay[row][column], char player2BoardDisplay[row][column]){
+    if (player == '1')
+    {
+        printf("\n 1st player Board: \n");
+        printBoard(row, column, player1BoardDisplay);
+    } else if (player == '2')
+    {
+        printf("\n 2nd player Board: \n");
+        control=0;
+        printBoard(row, column, player2BoardDisplay);
+    }
+
+
+    while (control<5)
+    {
+        char choice;
+        int rowPick = -1;
+        int colPick;
+        char choice_a[100];
+        while (control <5)
+        {
+            do
+            {
+                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                scanf("%s", choice_a);
+            } while (strlen(choice_a) > 1);
+            {
+                choice = choice_a[0];
+                printf("You chose: %c\n", choice);
+            }
+
+            if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+            {
+                printf("Invalid choice. Please select again.\n");
+            } else
+            {
+                printf("Pick a square to place a ship (EX: A4):\n");
+                char letter;
+                scanf(" %c", &letter);
+                scanf(" %d", &rowPick);
+                while (rowPick > column || rowPick < 0)
+                {
+                    printf("please enter row again...");
+                    scanf(" %d", &rowPick);
+                }
+                colPick = (letter - 'A');
+                if (player == '1')
+                {
+                    char yonsecim;
+                    int shipLength;
+                    if      (choice == 'A') {
+                        if (player1Ashipdone == 1) {
+                            printf("\nPlayer %c please select every ship once\n ", player);
+                            do {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                            } while (strlen(choice_a) > 1);
+                            {
+                                choice = choice_a[0];
+                                printf("You chose: %c\n", choice);
+                            }
+                            if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S') {
+                                printf("Invalid choice. Please select again.\n");
+                            } else {
+                                printf("Pick a square to place a ship (EX: A4):\n");
+                                char letter;
+                                scanf(" %c", &letter);
+                                scanf(" %d", &rowPick);
+                                while (rowPick > column || rowPick < 0) {
+                                    printf("please enter row again...");
+                                    scanf(" %d", &rowPick);
+                                }
+                                colPick = (letter - 'A');
+                            }
+                        } else { shipLength = 5; }
+                    }else if (choice == 'B') {
+                        if (player1Bshipdone == 1) {
+                            printf("\nPlayer %c please select every ship once\n ", player);
+                            do {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                            } while (strlen(choice_a) > 1);
+                            {
+                                choice = choice_a[0];
+                                printf("You chose: %c\n", choice);
+                            }
+
+                            if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S') {
+                                printf("Invalid choice. Please select again.\n");
+                            } else {
+
+                                printf("Pick a square to place a ship (EX: A4):\n");
+                                char letter;
+                                scanf(" %c", &letter);
+                                scanf(" %d", &rowPick);
+                                while (rowPick > column || rowPick < 0) {
+                                    printf("please enter row again...");
+                                    scanf(" %d", &rowPick);
+                                }
+                                colPick = (letter - 'A');
+                            }
+                        } else {
+                            shipLength = 4;
+                        }
+                    }else if (choice == 'C')
+                    {
+                        if(player1Cshipdone==1){printf("\nPlayer %c please select every ship once\n ", player);
+                        do
+                        {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                            } while (strlen(choice_a) > 1);
+                            {
+                                choice = choice_a[0];
+                                printf("You chose: %c\n", choice);
+                            }
+
+                            if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+                            {
+                                printf("Invalid choice. Please select again.\n");
+                            } else
+                            {
+                                printf("Pick a square to place a ship (EX: A4):\n");
+                                char letter;
+                                scanf(" %c", &letter);
+                                scanf(" %d", &rowPick);
+                                while (rowPick > column || rowPick < 0)
+                                {
+                                    printf("please enter row again...");
+                                    scanf(" %d", &rowPick);
+                                }
+                                colPick = (letter - 'A');}}else{shipLength = 2; }
+                    }else if(choice == 'D')
+                    { if(player1Dshipdone==1)
+                    {
+                        printf("\nPlayer %c please select every ship once\n ", player);
+                        do {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                            } while (strlen(choice_a) > 1);
+                            {
+                                choice = choice_a[0];
+                                printf("You chose: %c\n", choice);
+                            }
+
+                            if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+                            {
+                                printf("Invalid choice. Please select again.\n");
+                            } else
+                            {
+
+                                printf("Pick a square to place a ship (EX: A4):\n");
+                                char letter;
+                                scanf(" %c", &letter);
+                                scanf(" %d", &rowPick);
+                                while (rowPick > column || rowPick < 0)
+                                {
+                                    printf("please enter row again...");
+                                    scanf(" %d", &rowPick);
+                                }
+                                colPick = (letter - 'A');}}else{shipLength = 3; }
+                    }else if (choice == 'S')
+                    {
+                        if(player1Sshipdone==1){printf("\nPlayer %c please select every ship once\n ", player);
+                        do {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                        }while (strlen(choice_a) > 1);
+                            {
+                                choice = choice_a[0];
+                                printf("You chose: %c\n", choice);
+                            }
+
+                            if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+                            {
+                                printf("Invalid choice. Please select again.\n");
+                            } else
+                            {
+                                printf("Pick a square to place a ship (EX: A4):\n");
+                                char letter;
+                                scanf(" %c", &letter);
+                                scanf(" %d", &rowPick);
+                                while (rowPick > column || rowPick < 0)
+                                {
+                                    printf("please enter row again...");
+                                    scanf(" %d", &rowPick);
+                                }
+                                colPick = (letter - 'A');}}else{shipLength = 3; }}
+                    switch (choice)
+                    {
+                        case 'A':
+                            if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick + 2, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick + 3, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 3) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 4))
+                            {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                player1Ashipdone = 1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick + 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick + 2, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick + 3, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player1Ashipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips1)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 3) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 4))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player1Ashipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips1)++;
+                                }
+                            } else
+                            {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'B':
+                            if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick + 2, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 3)) {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player1Bshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else { break;}
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick + 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick + 2, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player1Bshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips1)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 3) )
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player1Bshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips1)++;
+                                }
+                            } else {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'C':
+                            if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1)) {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player1Cshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else { break;}
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick, colPick) )
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player1Cshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips1)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player1Cshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++) {
+                                    player1Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips1)++;
+                                }
+                            } else
+                            {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'D':
+                            if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player1Dshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick + 1, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player1Dshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips1)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player1Dshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips1)++;
+                                }
+                            } else {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'S':
+                            if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player1Sshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+
+                                if (yonsecim == 'V') {
+                                    for (int i = 0; i < shipLength; i++) {
+                                        player1Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player1Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips1)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick + 1, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player1Sshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player1Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips1)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player1Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player1Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player1Sshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++) {
+                                    player1Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips1)++;
+                                }
+                            } else {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                    }
+                    if(control==5)
+                    {
+                        printf("\nExiting..\n");
+                        sleep(TIME);
+                        system("cls");
+                        break;
+                    }
+                }else if (player == '2')
+                {
+                    char yonsecim;
+                    int shipLength;
+
+                    if (choice == 'A')
+                    {
+                        if(player2Ashipdone==1){printf("\nPlayer %c please select every ship once");
+                        do
+                        {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                        } while (strlen(choice_a) > 1);
+                        {
+                            choice = choice_a[0];
+                            printf("You chose: %c\n", choice);
+                        }
+
+                        if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S') {
+                            printf("Invalid choice. Please select again.\n");
+                        } else
+                        {
+
+                            printf("Pick a square to place a ship (EX: A4):\n");
+                            char letter;scanf(" %c", &letter);
+                            scanf(" %d", &rowPick);
+                            while (rowPick > column || rowPick < 0)
+                            {
+                                printf("please enter row again...");
+                                scanf(" %d", &rowPick);
+                            }
+                            colPick = (letter - 'A');}}else{shipLength = 5;}
+                    }else if (choice == 'B')
+                    {
+                        if(player2Bshipdone==1){printf("\nPlayer %c please select every ship once");
+                        do
+                        {
+                            printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                            scanf("%s", choice_a);
+                        } while (strlen(choice_a) > 1);
+                        {
+                            choice = choice_a[0];
+                            printf("You chose: %c\n", choice);
+                        }
+
+                        if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+                        {
+                            printf("Invalid choice. Please select again.\n");
+                        } else{
+                            printf("Pick a square to place a ship (EX: A4):\n");
+                            char letter;
+                            scanf(" %c", &letter);
+                            scanf(" %d", &rowPick);
+                            while (rowPick > column || rowPick < 0)
+                            {
+                                printf("please enter row again...");
+                                scanf(" %d", &rowPick);
+                            }
+                            colPick = (letter - 'A');}}else{shipLength = 4; }
+                    }else if (choice == 'C')
+                    {
+                        if(player2Cshipdone==1){printf("\nPlayer %c please select every ship once");
+                        do
+                        {
+                        printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                        scanf("%s", choice_a);
+                        } while (strlen(choice_a) > 1);
+                        {
+                            choice = choice_a[0];
+                            printf("You chose: %c\n", choice);
+                        }
+
+                    if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+                    {
+                        printf("Invalid choice. Please select again.\n");
+                    } else
+                    {
+                        printf("Pick a square to place a ship (EX: A4):\n");
+                        char letter;
+                        scanf(" %c", &letter);
+                        scanf(" %d", &rowPick);
+                        while (rowPick > column || rowPick < 0)
+                        {
+                            printf("please enter row again...");
+                            scanf(" %d", &rowPick);
+                        }
+                        colPick = (letter - 'A');}}else{shipLength = 2; }
+                    }else if (choice == 'D')
+                    {
+                        if(player2Dshipdone==1)
+                        {
+                            printf("\nPlayer %c please select every ship once");
+                            do
+                            {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                            } while (strlen(choice_a) > 1);
+                            {
+                                choice = choice_a[0];
+                                printf("You chose: %c\n", choice);
+                            }
+                            if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+                            {
+                                printf("Invalid choice. Please select again.\n");
+                            }else
+                            {
+                                printf("Pick a square to place a ship (EX: A4):\n");
+                                char letter;
+                                scanf(" %c", &letter);
+                                scanf(" %d", &rowPick);
+                                while (rowPick > column || rowPick < 0)
+                                {
+                                    printf("please enter row again...");
+                                    scanf(" %d", &rowPick);
+                                }
+                            colPick = (letter - 'A');
+                            }
+                        }else{shipLength = 3; }
+                    }else if (choice == 'S')
+                    {
+                        if(player2Sshipdone==1)
+                        {
+                            printf("\nPlayer %c please select every ship once");
+                            do
+                            {
+                                printf("\nPlayer %c, Which Ship (A/B/C/D/S)\n ", player);
+                                scanf("%s", choice_a);
+                            } while (strlen(choice_a) > 1);
+                            {
+                                choice = choice_a[0];
+                                printf("You chose: %c\n", choice);
+                            }
+                        if (choice != 'A' && choice != 'B' && choice != 'C' && choice != 'D' && choice != 'S')
+                        {
+                            printf("Invalid choice. Please select again.\n");
+                        } else
+                        {
+                            printf("Pick a square to place a ship (EX: A4):\n");
+                            char letter;
+                            scanf(" %c", &letter);
+                            scanf(" %d", &rowPick);
+                            while (rowPick > column || rowPick < 0)
+                            {
+                                printf("please enter row again...");
+                                scanf(" %d", &rowPick);
+                            }
+                            colPick = (letter - 'A');}
+                            }else{shipLength = 3;
+                        }
+                    }
+
+                    switch (choice)
+                    {
+                        case 'A':
+                            if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick + 2, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick + 3, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 3) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 4)) {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player2Ashipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick + 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick + 2, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick + 3, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player2Ashipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips2)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 3) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 4))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player2Ashipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips2)++;
+                                }
+                            } else
+                            {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'B':
+                            if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick + 2, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 3))
+                            {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player2Bshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick + 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick + 2, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player2Bshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips2)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 3) )
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player2Bshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips2)++;
+                                }
+                            } else
+                            {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'C':
+                            if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1))
+                            {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player2Cshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V') {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick, colPick) )
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player2Cshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips2)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player2Cshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips2)++;
+                                }
+                            } else
+                            {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'D':
+                            if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player2Dshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick + 1, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player2Dshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips2)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player2Dshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips2)++;
+                                }
+                            } else
+                            {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                        case 'S':
+                            if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick + 1, colPick) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("how you place your ship? (V)vertical or (H)horizontal?");
+                                scanf(" %c", &yonsecim);
+                                printf("\n\n\nShip Successfully placed...");
+                                control++;
+                                 player2Sshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                sleep(TIME);
+                                system("cls");
+                                if (yonsecim == 'V')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1 + i][colPick] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else if (yonsecim == 'H')
+                                {
+                                    for (int i = 0; i < shipLength; i++)
+                                    {
+                                        player2Board[rowPick - 1][colPick + i] = choice;
+                                        (*playerShips2)++;
+                                    }
+                                } else { break; }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick + 1, colPick))
+                            {
+                                printf("geminiz otomatik olarak yatay yerleştirildi(dikey olmuyor.)");
+                                control++;
+                                 player2Sshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1 + i][colPick] = choice;
+                                    (*playerShips2)++;
+                                }
+
+                            } else if (isPlaceOkay(row, column, player2Board, rowPick - 1, colPick) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 1) &&
+                                       isPlaceOkay(row, column, player2Board, rowPick - 1, colPick + 2))
+                            {
+                                printf("geminiz otomatik olarak dikey yerleştirildi(yatay olmuyor.)");
+                                control++;
+                                 player2Sshipdone=1;
+                                sleep(TIME);
+                                system("cls");
+                                sleep(TIME);
+                                system("cls");
+                                for (int i = 0; i < shipLength; i++)
+                                {
+                                    player2Board[rowPick - 1][colPick + i] = choice;
+                                    (*playerShips2)++;
+                                }
+                            } else
+                            {
+                                printf("Cell is already occupied, please choose another location.\n");
+                                break;
+                            }
+                            break;
+                    }
+                    if(control==5)
+                    {
+                        printf("\nExiting..\n");
+                        sleep(TIME);
+                        system("cls");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void playGame(int row, int column, char player1Board[row][column], char player2Board[row][column],
+              char player1BoardDisplay[row][column], char player2BoardDisplay[row][column]){
+    int playerShips1 = 0;
+    int playerShips2 = 0;
+
+    placeShip(row, column, '1', &playerShips1, &playerShips2, player1Board, player2Board, player1BoardDisplay, player2BoardDisplay);
+    placeShip(row, column, '2', &playerShips1, &playerShips2, player1Board, player2Board, player1BoardDisplay, player2BoardDisplay);
+
+    int rowAttack;
+    int colAttack;
+    int firstplayertotalmove=0;
+    int secondplayertotalmove=0;
+    char letter;
+
+    while (playerShips1 > 0 && playerShips2 > 0)
+    {
+        // Turn for Player 1
+        printf("\n\n1st Player Turn\n");
+        printBoard(row, column, player1BoardDisplay);
+        printf("\n\n");
+        printf("Pick a cell to attack (EX. A AND 4) to pass press 0\n");
+        scanf(" %c", &letter);
+        colAttack = (letter - 'A');
+        scanf("%d", &rowAttack);
+        int correctmove=0;
+        if (letter == '0')
+        {
+            printf("Pass");
+            firstplayertotalmove++;
+            printf("1'st player move: %d", firstplayertotalmove);
+            continue;
+        }else
+        {
+            while(correctmove==0)
+            {
+                if (isAttackOkay(row, column, player2Board, rowAttack - 1, colAttack)) {
+                    firstplayertotalmove++;
+                    printf("SHOT!                              1'st player move: %d", firstplayertotalmove);
+                    player1BoardDisplay[rowAttack - 1][colAttack] = '*';
+                    player2Board[rowAttack - 1][colAttack] = '*';
+                    correctmove = 1;
+                    printBoard(row, column, player1BoardDisplay);
+                    sleep(TIME);
+                    system("cls");
+                    playerShips2--;
+                    if (playerShips2 == 0)
+                    {
+                        break;
+                    }
+                }else if (player2Board[rowAttack - 1][colAttack] == 'X')
+                {
+                    firstplayertotalmove++;
+                    printf("MISS!                              1'st player move: %d", firstplayertotalmove);
+                    player1BoardDisplay[rowAttack - 1][colAttack] = '0';
+                    correctmove = 1;
+                    printBoard(row, column, player1BoardDisplay);
+                    sleep(TIME);
+                    system("cls");
+                } else if (player1BoardDisplay[rowAttack - 1][colAttack] == '*')
+                {
+                    printf("Already been shot!");
+                    sleep(TIME);
+                    system("cls");
+                    break;
+                }else if (player1BoardDisplay[rowAttack - 1][colAttack] == '0')
+                {
+                    printf("Already been MISS!");
+                    sleep(TIME);
+                    system("cls");
+                    break;
+                }
+            }
+        }
+        // Turn for Player 2
+        correctmove=0;
+        printf("\n2nd Player Turn\n");
+        printBoard(row, column, player2BoardDisplay);
+
+        printf("Pick a cell to attack (EX. A AND 4) to pass press 0\n");
+        scanf(" %c", &letter);
+        colAttack = (letter - 'A');
+        scanf("%d", &rowAttack);
+        if (letter == '0') {
+            printf("Pass"                           );
+            correctmove = 1;
+            secondplayertotalmove++;
+            printf("2'st player move: %d", secondplayertotalmove);
+            continue;
+        }else
+        {
+            while(correctmove==0)
+            {
+                if (isAttackOkay(row, column, player1Board, rowAttack - 1, colAttack))
+                {
+                    secondplayertotalmove++;
+                    printf("SHOT!                              2'st player total move: %d",secondplayertotalmove);
+
+                    player2BoardDisplay[rowAttack - 1][colAttack] = '*';
+                    player1Board[rowAttack - 1][colAttack] = '*';
+                    correctmove = 1;
+                    printBoard(row, column, player2BoardDisplay);
+                    sleep(TIME);
+                    system("cls");
+                    playerShips1--;
+
+                    if (playerShips1 == 0)
+                    {
+                        break;
+                    }
+                } else if (player1Board[rowAttack - 1][colAttack] == 'X')
+                {
+                    secondplayertotalmove++;
+                    printf("MISS!                              2'st player total move: %d",secondplayertotalmove);
+
+                    player2BoardDisplay[rowAttack - 1][colAttack] = '0';
+                    correctmove = 1;
+                    printBoard(row, column, player2BoardDisplay);
+                    sleep(TIME);
+                    system("cls");
+
+                } else if (player2BoardDisplay[rowAttack - 1][colAttack] == '*')
+                {
+                    printf("Already been shot!\n");
+                    sleep(TIME);
+                    system("cls");
+                    break;
+                } else if (player2BoardDisplay[rowAttack - 1][colAttack] == '0')
+                {
+                    printf("Already been MISS!\n");
+                    sleep(TIME);
+                    system("cls");
+                    break;
+                }
+            }
+        }
+    }
+//winner function
+    printf("\nthe Game is Over\nWinner is:\n");
+    if(playerShips1 == 0)
+    {
+        printf("Player 2 !!");
+    }
+    else
+    {
+        printf("Player 1 !!");
+    }
+}
+
+int main()
+{
+    srand((time(NULL)));
+    welcome_rules_interface();
+    int column=0;
+    int row=0;
+
+    while(row==0 || column==0)
+    {
+        printf("Please enter Row:\n");
+        if (scanf("%d", &row)!=1)
+        {
+            scanf("%*s");
+            continue;
+        }
+        printf("Please enter Column:\n");
+        if(scanf("%d", &column)!=1)
+        {
+            scanf("%*s");
+            continue;
+        }
+    }
+    char player1Board[row][column];
+    char player2Board[row][column];
+    char player1BoardDisplay[row][column];
+    char player2BoardDisplay[row][column];
+    emptyBoard(row, column, player1BoardDisplay);
+    emptyBoard(row, column, player2BoardDisplay);
+    emptyBoard(row, column, player1Board);
+    emptyBoard(row, column, player2Board);
+    sleep(TIME);
+    system("cls");
+    playGame(row, column, player1Board, player2Board, player1BoardDisplay, player2BoardDisplay);
+    return 0;
+}
